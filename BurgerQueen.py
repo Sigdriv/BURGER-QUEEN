@@ -26,7 +26,6 @@ def logInnInterface():
 
     elif choice == "2":
         if signUp():
-            clear_terminal()
             pass
         else:
             signUp()
@@ -149,6 +148,7 @@ def orderInterface():
 
 def place_order():
     global current_user
+    global error
     global info
     clear_terminal()
     print("2. Registrer ordre")
@@ -162,6 +162,13 @@ def place_order():
     print()
         
     burger_name = input("Enter burger name: ")
+    
+    if burger_name not in burger_names:
+        error = "Burgeren finnes ikke. Prøv igjen."
+        place_order()
+    
+    print("Ordre lastes opp...")
+    print("Vent litt")
 
     conn = connect_database()
     c = conn.cursor()
@@ -177,19 +184,27 @@ def place_order():
     
 def display_user_orders():
     global current_user
+    global error
+    clear_terminal()
+    print("1. Vis ordre")
+    print()
 
     conn = connect_database()
     c = conn.cursor()
 
-    c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user))
+    c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user,))
     orders = c.fetchall()
 
     if not orders:
-        print("No orders found for the current user.")
+        error = "No orders found for the current user."
     else:
-        print("User Orders:")
+        print("Dine Bestillinger:")
         for order in orders:
-            print(f"OrderID: {order[0]}, Burger: {order[2]}, Produced: {'Yes' if order[4] else 'No'}")
+            print(f"BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+    
+        print()
+        input("Press enter for å fortsette... ")
+    
 
     conn.close()
 
