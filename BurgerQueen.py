@@ -5,6 +5,7 @@ from colorama import Fore
 current_user = None
 error = None
 info = None
+employed = False
 
 def logInnInterface():
     global error
@@ -41,6 +42,7 @@ def logInnInterface():
 def logInn():
     global current_user
     global error
+    global employed
     clear_terminal()
     print()
     
@@ -55,6 +57,8 @@ def logInn():
     c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password))
     if c.fetchone() is not None:
         current_user = username
+        if is_employee():
+            employed = True
         return True
     else:
         error = "Ugyldig brukernavn eller passord \nVenligst prøv igjen"
@@ -64,6 +68,7 @@ def signUp():
     global current_user
     global error
     global info
+    global employed
     clear_terminal()
     print()
     
@@ -83,7 +88,22 @@ def signUp():
         conn.close()
         info = username + " er nå registrert og er logget inn"
         current_user = username
+        if is_employee():
+            employed = True
         return True
+    
+def is_employee():
+    global current_user
+    global employed
+
+    conn = connect_database()
+    c = conn.cursor()
+
+    c.execute("SELECT Hired FROM User WHERE UsernameID = ?", (current_user,))
+    is_employee = c.fetchone()[0]
+
+    conn.close()
+    employed = bool(is_employee)
     
 
 def clear_terminal():
@@ -95,7 +115,10 @@ def clear_terminal():
             os.system("cls")
         else:
             os.system("clear")
-        print("Logget inn som " + current_user)
+        if employed:
+            print("Logget inn som " + current_user + " (Ansatt)")
+        else:
+            print("Logget inn som " + current_user)
     else:
         if os.name == "nt":
             os.system("cls")
@@ -114,36 +137,61 @@ def clear_terminal():
 def connect_database():
     return sql.connect("BurgerQueen.db")
 
-def get_burger_names():
+def get_burger():
     conn = connect_database()
     c = conn.cursor()
 
-    c.execute("SELECT NameID FROM Burgers")
-    burger_names = [row[0] for row in c.fetchall()]
+    c.execute("SELECT * FROM Burgers")
+    burger_data = c.fetchall()
+    burger_names = [row[0] for row in burger_data]
+    burger_IDs = [row[1] for row in burger_data]
+    print(burger_names)
+    print(burger_IDs)
+    input('Press enter to continue... ')
 
     conn.close()
-    return burger_names
+    return burger_names, burger_IDs
 
 def orderInterface():
     global error
     
     clear_terminal()
-    print("2. Ordre")
+    print("1. Ordre")
     print()
-    print("1. Vis ordre")
-    print("2. Registrer ordre")
-    print("3. Tilbake")
-    choice = input("Velg en handling: ")
-    
-    if choice == "1":
-        display_user_orders()
-    elif choice == "2":
-        place_order()
-    elif choice == "3":
-        main()
+    if employed:
+        print("1. Vis alle ordre")
+        print("2. Registrer ordre")
+        print("3. Produser ordre")
+        print("4. Tilbake")
+        choice = input("Velg en handling: ")
+        
+        if choice == "1":
+            display_user_orders()
+        elif choice == "2":
+            place_order()
+        elif choice == "3":
+            produce_order()
+        elif choice == "4":
+            main()
+        else:
+            error = "Ugyldig valg. Prøv igjen."
+            orderInterface()
     else:
-        error = "Ugyldig valg. Prøv igjen."
-        orderInterface()
+        print("1. Vis ordre")
+        print("2. Registrer ordre")
+        print("3. Tilbake")
+        choice = input("Velg en handling: ")
+        
+        if choice == "1":
+            display_user_orders()
+        elif choice == "2":
+            place_order()
+        elif choice == "3":
+            main()
+        else:
+            error = "Ugyldig valg. Prøv igjen."
+            orderInterface()
+        
 
 
 def place_order():
@@ -151,17 +199,18 @@ def place_order():
     global error
     global info
     clear_terminal()
-    print("2. Registrer ordre")
+    print("1. Registrer ordre")
     print()
     
-    burger_names = get_burger_names()
+    burger_names_ID = get_burger()
     
     print("Available Burgers:")
-    for i, burger_name in enumerate(burger_names, start=1):
-        print(f"{i}. {burger_name}")
+    print('BurgerID: Burger navn')
+    for burger_ID, burger_name in enumerate(burger_names_ID, start=1):
+        print(f"{burger_ID}. {burger_name}")
     print()
         
-    burger_name = input("Enter burger name: ")
+    burger_ID = input("Skriv inn burgerID-en: ")
     
     if burger_name not in burger_names:
         error = "Burgeren finnes ikke. Prøv igjen."
@@ -185,6 +234,7 @@ def place_order():
 def display_user_orders():
     global current_user
     global error
+    count = 0
     clear_terminal()
     print("1. Vis ordre")
     print()
@@ -199,8 +249,10 @@ def display_user_orders():
         error = "No orders found for the current user."
     else:
         print("Dine Bestillinger:")
+        print()
         for order in orders:
-            print(f"BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+            count += 1
+            print(f"{count}. BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
     
         print()
         input("Press enter for å fortsette... ")
@@ -237,17 +289,17 @@ def main():
                 main()
         
         else:
-            print("1. Logg ut")
-            print("2. Ordre")
+            print("1. Ordre")
+            print("2. Logg ut")
             print("3. Avslutt")
 
             choice = input("Velg en handling: ")
 
-            if choice == "1":
+            if choice == "2":
                 current_user = None
                 clear_terminal()
 
-            elif choice == "2":
+            elif choice == "1":
                 orderInterface()
 
             elif choice == "3":
