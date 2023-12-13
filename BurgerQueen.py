@@ -244,6 +244,19 @@ def display_user_orders():
 
     c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user,))
     orders = c.fetchall()
+    
+    if employed:
+        c.execute("SELECT * FROM Orders")
+        orders = c.fetchall()
+        print("Alle ordre:")
+        print()
+        for order in orders:
+            count += 1
+            print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+    
+        print()
+        input("Press enter for å fortsette... ")
+        main()
 
     if not orders:
         error = "No orders found for the current user."
