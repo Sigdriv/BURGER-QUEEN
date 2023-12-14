@@ -79,7 +79,7 @@ def signUp():
     conn = connect_database()
     c = conn.cursor()
     c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password))
-    if c.fetchone() is not None:
+    if c.fetchone() is None:
         error = "Brukernavnet eksisterer allerede \nVennligst velg et annet"
         logInnInterface()
     else:
@@ -159,7 +159,7 @@ def orderInterface():
     print("1. Ordre")
     print()
     if employed:
-        print("1. Vis alle ordre")
+        print("1. Vis ordre")
         print("2. Registrer ordre")
         print("3. Produser ordre")
         print("4. Tilbake")
@@ -170,7 +170,8 @@ def orderInterface():
         elif choice == "2":
             place_order()
         elif choice == "3":
-            produce_order()
+            # produce_order()
+            pass
         elif choice == "4":
             main()
         else:
@@ -212,7 +213,7 @@ def place_order():
         
     burger_ID = input("Skriv inn burgerID-en: ")
     
-    if burger_name not in burger_names:
+    if burger_name not in burger_names_ID:
         error = "Burgeren finnes ikke. Prøv igjen."
         place_order()
     
@@ -230,36 +231,56 @@ def place_order():
 
     info = f"Order placed successfully for {burger_name}!"
     main()
-    
-def display_user_orders():
-    global current_user
-    global error
-    count = 0
-    clear_terminal()
-    print("1. Vis ordre")
-    print()
 
+def displayProducedOrders():
+    count = 0
+    
     conn = connect_database()
     c = conn.cursor()
+    
+    c.execute("SELECT * FROM Orders WHERE Produced = 1")
+    orders = c.fetchall()
+    print()
+    print("Alle produserte ordre:")
+    print()
+    for order in orders:
+        count += 1
+        print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        
+    conn.close()
 
+def displayNotProducedOrders():
+    count = 0
+        
+    conn = connect_database()
+    c = conn.cursor()
+    
+    c.execute("SELECT * FROM Orders WHERE Produced = 0")
+    orders = c.fetchall()
+    print()
+    print("Alle ikke-produserte ordre:")
+    print()
+    for order in orders:
+        count += 1
+        print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+
+    conn.close()
+
+def displayUserOrders():
+    global error
+    count = 0
+    
+    conn = connect_database()
+    c = conn.cursor()
+    
     c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user,))
     orders = c.fetchall()
     
-    if employed:
-        c.execute("SELECT * FROM Orders")
-        orders = c.fetchall()
-        print("Alle ordre:")
-        print()
-        for order in orders:
-            count += 1
-            print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
-    
-        print()
-        input("Press enter for å fortsette... ")
-        main()
-
     if not orders:
         error = "No orders found for the current user."
+        clear_terminal()
+        print('1. Vis ordre')
+        print()
     else:
         print("Dine Bestillinger:")
         print()
@@ -267,11 +288,64 @@ def display_user_orders():
             count += 1
             print(f"{count}. BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
     
+    conn.close()
+    
+def display_user_orders():
+    global error
+    clear_terminal()
+    print("1. Vis ordre")
+    print()
+    
+    if employed:
+        
+        print("1. Alle ordre")
+        print("2. Produserte ordre")
+        print("3. Ikke-produserte ordre")
+        print("4. Tilbake")
+        choice = input("Velg en handling: ")
+        
+        if choice == "1":
+            clear_terminal()
+            print("1. Alle ordre")
+            displayProducedOrders()
+            
+            displayNotProducedOrders()
+            print()
+            
+            input("Press enter for å fortsette... ")
+            display_user_orders()
+        
+        elif choice == "2":
+            clear_terminal()
+            print("2. Produserte ordre")
+            displayProducedOrders()
+            print()
+            
+            input("Press enter for å fortsette... ")
+            display_user_orders()
+        
+        elif choice == "3":
+            clear_terminal()
+            print("3. Ikke-produserte ordre")
+            displayNotProducedOrders()
+            print()
+            
+            input("Press enter for å fortsette... ")
+            display_user_orders()
+        
+        elif choice == "4":
+            orderInterface()
+        
+        else:
+            error = "Ugyldig valg. Prøv igjen."
+            display_user_orders()
+    
+    else:
+        displayUserOrders()
+        
         print()
         input("Press enter for å fortsette... ")
-    
-
-    conn.close()
+        orderInterface()
 
 
 # Hovedfunksjon
