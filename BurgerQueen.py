@@ -45,9 +45,9 @@ def logInn():
     global employed
     global info
     clear_terminal()
-    print()
     
     print("1. Logg inn")
+    print()
     print("Please enter your username and password")
     print()
     username = input("Username: ")
@@ -72,16 +72,16 @@ def signUp():
     global info
     global employed
     clear_terminal()
-    print()
     
     print("2. Opprett bruker")
+    print()
     print("Skriv inn ønsket brukernavn og passord")
     username = input("Brukernavn: ")
     password = input("Passord: ")
     conn = connect_database()
     c = conn.cursor()
     c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password))
-    if c.fetchone() is None:
+    if c.fetchone() is not None:
         error = "Brukernavnet eksisterer allerede \nVennligst velg et annet"
         logInnInterface()
     else:
@@ -126,7 +126,7 @@ def clear_terminal():
             os.system("cls")
         else:
             os.system("clear")
-        print("Ikke logget inn")
+        print(f"{Fore.RED}Du er ikke logget inn, \nVennligst logg inn eller opprett bruker{Fore.WHITE}")
     print("Velkommen til Burger Queen")
     
     if error is not None:
@@ -288,7 +288,7 @@ def place_order():
     conn.close()
 
     info = f"Order placed successfully for {burger_name} Burger!"
-    main()
+    orderInterface()
 
 
 
@@ -303,7 +303,7 @@ def displayProducedOrders():
     print("Alle produserte ordre:")
     print()
     for order in orders:
-        print(f"BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
         
     conn.close()
 
@@ -318,7 +318,7 @@ def displayNotProducedOrders():
     print("Alle ikke-produserte ordre:")
     print()
     for order in orders:
-        print(f"BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
 
     conn.close()
 
