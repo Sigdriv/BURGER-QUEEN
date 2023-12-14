@@ -2,10 +2,10 @@ import sqlite3 as sql
 import os
 from colorama import Fore
 
-current_user = None
+current_user = 'test'
 error = None
 info = None
-employed = False
+employed = True
 
 def logInnInterface():
     global error
@@ -43,6 +43,7 @@ def logInn():
     global current_user
     global error
     global employed
+    global info
     clear_terminal()
     print()
     
@@ -59,7 +60,8 @@ def logInn():
         current_user = username
         if is_employee():
             employed = True
-        return True
+        info = f'Innlogging vellykket for {username}'
+        main()
     else:
         error = "Ugyldig brukernavn eller passord \nVenligst prøv igjen"
         return False
@@ -143,14 +145,9 @@ def get_burger():
 
     c.execute("SELECT * FROM Burgers")
     burger_data = c.fetchall()
-    burger_names = [row[0] for row in burger_data]
-    burger_IDs = [row[1] for row in burger_data]
-    print(burger_names)
-    print(burger_IDs)
-    input('Press enter to continue... ')
 
     conn.close()
-    return burger_names, burger_IDs
+    return burger_data
 
 def orderInterface():
     global error
@@ -160,19 +157,17 @@ def orderInterface():
     print()
     if employed:
         print("1. Vis ordre")
-        print("2. Registrer ordre")
-        print("3. Produser ordre")
-        print("4. Tilbake")
+        print("2. Produser ordre")
+        print("3. Tilbake")
         choice = input("Velg en handling: ")
         
         if choice == "1":
             display_user_orders()
         elif choice == "2":
-            place_order()
-        elif choice == "3":
-            # produce_order()
+            error = "Denne funksjonen er under implementert enda."
+            produce_order()
             pass
-        elif choice == "4":
+        elif choice == "3":
             main()
         else:
             error = "Ugyldig valg. Prøv igjen."
@@ -192,6 +187,52 @@ def orderInterface():
         else:
             error = "Ugyldig valg. Prøv igjen."
             orderInterface()
+            
+
+def produce_order():
+    global error
+    global info
+    clear_terminal()
+    print('2. Produser ordre')
+    print()
+    
+    displayNotProducedOrders()
+    print()
+    
+    burger_produser = input("Hvilken burger vil du produsere? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ")
+    
+    if burger_produser == "":
+        orderInterface()
+    
+    try:
+        burger_produser = int(burger_produser)
+    except ValueError:
+        error = "Ugyldig input. BestillingsID må være et tall. Prøv igjen."
+        produce_order()
+        return
+    
+    conn = connect_database()
+    c = conn.cursor()
+    
+    c.execute("SELECT * FROM Orders WHERE OrderID = ?", (burger_produser,))
+    order = c.fetchone()
+    
+    if order is None:
+        error = "Ugyldig bestillingsID. Prøv igjen."
+        produce_order()
+        return
+    
+    if order[3] == 1:
+        error = "Denne ordren er allerede produsert."
+        produce_order()
+        return
+    
+    c.execute("UPDATE Orders SET Produced = 1 WHERE OrderID = ?", (burger_produser,))
+    conn.commit()
+    conn.close()
+    
+    info = f"Order {burger_produser} has been produced."
+    orderInterface()
         
 
 
@@ -206,16 +247,33 @@ def place_order():
     burger_names_ID = get_burger()
     
     print("Available Burgers:")
-    print('BurgerID: Burger navn')
-    for burger_ID, burger_name in enumerate(burger_names_ID, start=1):
+    for burger_name, burger_ID in burger_names_ID:
         print(f"{burger_ID}. {burger_name}")
     print()
         
-    burger_ID = input("Skriv inn burgerID-en: ")
+    burger_ID_input = input("Skriv inn burgerID-en: eller enter for å avbryte: ")
     
-    if burger_name not in burger_names_ID:
-        error = "Burgeren finnes ikke. Prøv igjen."
+    if burger_ID_input == "":
+        orderInterface()
+        return
+    
+    try:
+        burger_ID = int(burger_ID_input)
+    except ValueError:
+        error = "Ugyldig input. BurgerID må være et tall. Prøv igjen."
         place_order()
+        return
+    
+    # Check if the entered burger_ID is valid
+    valid_burger_ids = [burger_ID for _, burger_ID in burger_names_ID]
+    print(valid_burger_ids)
+    if burger_ID not in valid_burger_ids:
+        error = "Ugyldig BurgerID. Prøv igjen."
+        place_order()
+        return
+
+    # Get the corresponding burger_name
+    burger_name = next(name for name, id in burger_names_ID if id == burger_ID)
     
     print("Ordre lastes opp...")
     print("Vent litt")
@@ -229,11 +287,12 @@ def place_order():
     conn.commit()
     conn.close()
 
-    info = f"Order placed successfully for {burger_name}!"
+    info = f"Order placed successfully for {burger_name} Burger!"
     main()
 
+
+
 def displayProducedOrders():
-    count = 0
     
     conn = connect_database()
     c = conn.cursor()
@@ -244,13 +303,11 @@ def displayProducedOrders():
     print("Alle produserte ordre:")
     print()
     for order in orders:
-        count += 1
-        print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        print(f"BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
         
     conn.close()
 
 def displayNotProducedOrders():
-    count = 0
         
     conn = connect_database()
     c = conn.cursor()
@@ -261,8 +318,7 @@ def displayNotProducedOrders():
     print("Alle ikke-produserte ordre:")
     print()
     for order in orders:
-        count += 1
-        print(f"{count}. BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        print(f"BestillingsID: {order[0]}, Bruker: {order[1]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
 
     conn.close()
 
@@ -390,7 +446,7 @@ def main():
                 orderInterface()
 
             elif choice == "3":
-                print("Avslutter programmet.")
+                print("Avslutter programmet")
                 break
 
             else:
