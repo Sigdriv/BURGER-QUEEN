@@ -7,38 +7,84 @@ error = None
 info = None
 employed = False
 
+# Function to clear the terminal and display error/info and welcome message
+def clear_terminal():
+    global current_user
+    global error
+    global info
+    
+    # Clear the terminal if their is a user logged in
+    if current_user is not None:
+        if os.name == "nt":
+            os.system("cls")
+        else:
+            os.system("clear")
+            
+        # Display current user and if they are an employee
+        if employed:
+            print("Logget inn som " + current_user + " (Ansatt)")
+        else:
+            print("Logget inn som " + current_user)
+            
+    # Clear the terminal if their is no user logged in
+    else:
+        if os.name == "nt":
+            os.system("cls")
+        else:
+            os.system("clear")
+        
+        print(f"{Fore.YELLOW}Du er ikke logget inn, \nVennligst logg inn eller opprett bruker{Fore.RESET}") # Display that the user is not logged in and need to log in or sign up
+        
+    print("Velkommen til Burger Queen") # Display welcome message
+    
+    # Display error/info if there is any
+    if error is not None:
+        print(f'{Fore.RED}En feil oppsto: {error} {Fore.RESET}')
+        error = None
+    if info is not None:
+        print(f'{Fore.GREEN}{info} {Fore.RESET}')
+        info = None
+
+# Function to connect to the database
+def connect_database():
+    return sql.connect("BurgerQueen.db")
+
+# Function to the log in interface
 def logInnInterface():
     global error
     
-    clear_terminal()
+    clear_terminal() # Clear the terminal
     print()
     
+    # Display the log in interface and what the user can do
     print("1. Logg inn")
     print("2. Opprett bruker")
     print("3. Tilbake")
-    choice = input("Velg en handling: ")
+    choice = input("Velg en handling: ") # Ask the user to choose what they want to do
     
-    if choice == "1": 
-        if logInn():
+    # Check what the user chose and call the corresponding function
+    if choice == "1": # If the user chose to log in
+        if logInn(): # If the user successfully logged in
             clear_terminal()
             pass
-        else:
+        else: # If the user failed to log in
             logInnInterface()
 
-    elif choice == "2":
-        if signUp():
-            pass
-        else:
-            signUp()
+    elif choice == "2": # If the user chose to sign up
+        if signUp(): # If the user successfully signed up
+            pass # Do nothing
+        else: # If the user failed to sign up
+            signUp() # Call the sign up function again
     
-    elif choice == "3":
-        clear_terminal()
-        return False
+    elif choice == "3": # If the user chose to go back
+        clear_terminal() # Clear the terminal
+        return False # Return False to indicate that the user chose to go back
     
-    else:
-        error = "Ugyldig valg. Prøv igjen."
-        logInnInterface()
+    else: # If the user chose an invalid option
+        error = "Ugyldig valg. Prøv igjen." # Display an error message
+        logInnInterface() # Call the log in interface again
     
+# Function to log in
 def logInn():
     global current_user
     global error
@@ -46,127 +92,102 @@ def logInn():
     global info
     clear_terminal()
     
+    # Display that the user is at the logging in page
     print("1. Logg inn")
     print()
-    print("Please enter your username and password")
+    print("Please enter your username and password") # Ask the user to enter their username and password
     print()
-    username = input("Username: ")
-    password = input("Password: ")
+    username = input("Username: ") # Ask the user to enter their username
+    password = input("Password: ") # Ask the user to enter their password
 
-    conn = connect_database()
-    c = conn.cursor()
-    c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password))
-    if c.fetchone() is not None:
-        current_user = username
-        if is_employee():
-            employed = True
-        info = f'Innlogging vellykket for {username}'
-        main()
-    else:
-        error = "Ugyldig brukernavn eller passord \nVenligst prøv igjen"
-        return False
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
+    c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password)) # Execute a SQL statement to check if the username and password is correct
+    if c.fetchone() is not None: # If the username and password is correct
+        current_user = username # Set the current user to the username
+        if is_employee(): # Check if the user is an employee
+            employed = True # Set employed to True
+        info = "Innlogging vellykket for " + username # Set the info variable to that the user successfully logged in and what their username is and display it when the terminal gets cleared
+        main() # Call the main function
+    else: # If the username and password is incorrect
+        error = "Ugyldig brukernavn eller passord \nVenligst prøv igjen" # Display an error message
+        return False # Return False to indicate that the user failed to log in
 
+# Function to sign up
 def signUp():
     global current_user
     global error
     global info
     global employed
-    clear_terminal()
+    clear_terminal() # Clear the terminal
     
+    # Display that the user is at the sign up page
     print("2. Opprett bruker")
     print()
-    print("Skriv inn ønsket brukernavn og passord")
-    username = input("Brukernavn: ")
-    password = input("Passord: ")
-    conn = connect_database()
-    c = conn.cursor()
-    c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password))
-    if c.fetchone() is not None:
-        error = "Brukernavnet eksisterer allerede \nVennligst velg et annet"
-        logInnInterface()
-    else:
-        c.execute("INSERT INTO User VALUES (?, ?, 0)", (username, password))
-        conn.commit()
-        conn.close()
-        info = username + " er nå registrert og er logget inn"
-        current_user = username
-        if is_employee():
-            employed = True
-        return True
-    
-def is_employee():
-    global current_user
-    global employed
+    print("Skriv inn ønsket brukernavn og passord") # Ask the user to enter their desired username and password
+    username = input("Brukernavn: ") # Ask the user to enter their desired username
+    password = input("Passord: ") # Ask the user to enter their desired password
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
+    c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password)) # Execute a SQL statement to check if the username is already taken
+    if c.fetchone() is not None: # If the username is already taken
+        error = "Brukernavnet eksisterer allerede \nVennligst velg et annet" # Display an error message
+        logInnInterface() # Call the log in interface
+    else: # If the username is not taken
+        c.execute("INSERT INTO User VALUES (?, ?, 0)", (username, password)) # Execute a SQL statement to insert the username and password into the database
+        conn.commit() # Commit the changes to the database
+        conn.close() # Close the connection to the database
+        info = username + " er nå registrert og er logget inn" # Set the info variable to the user successfully signed up and what their username is and display it when the terminal gets cleared
+        current_user = username # Set the current user to the username
+        if is_employee(): # Check if the user is an employee
+            employed = True # Set employed to True
+        return True # Return True to indicate that the user successfully signed up
 
-    conn = connect_database()
-    c = conn.cursor()
+# Function to check if the user is an employee
+def is_employee(): 
+    global current_user # Get the current user
+    global employed # Get the employed variable
 
-    c.execute("SELECT Hired FROM User WHERE UsernameID = ?", (current_user,))
-    is_employee = c.fetchone()[0]
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
 
-    conn.close()
-    employed = bool(is_employee)
-    
+    c.execute("SELECT Hired FROM User WHERE UsernameID = ?", (current_user,)) # Execute a SQL statement to check if the user is an employee
+    is_employee = c.fetchone()[0] # Get the result of the SQL statement
 
-def clear_terminal():
-    global current_user
-    global error
-    global info
-    if current_user is not None:
-        if os.name == "nt":
-            os.system("cls")
-        else:
-            os.system("clear")
-        if employed:
-            print("Logget inn som " + current_user + " (Ansatt)")
-        else:
-            print("Logget inn som " + current_user)
-    else:
-        if os.name == "nt":
-            os.system("cls")
-        else:
-            os.system("clear")
-        print(f"{Fore.RED}Du er ikke logget inn, \nVennligst logg inn eller opprett bruker{Fore.WHITE}")
-    print("Velkommen til Burger Queen")
-    
-    if error is not None:
-        print(f'{Fore.RED}En feil oppsto: {error} {Fore.WHITE}')
-        error = None
-    if info is not None:
-        print(f'{Fore.GREEN}{info} {Fore.WHITE}')
-        info = None
+    conn.close() # Close the connection to the database
+    employed = bool(is_employee) # Set employed to the result of the SQL statement
 
-def connect_database():
-    return sql.connect("BurgerQueen.db")
-
+# a function to get the burger names and IDs from the database
 def get_burger():
-    conn = connect_database()
-    c = conn.cursor()
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
 
-    c.execute("SELECT * FROM Burgers")
-    burger_data = c.fetchall()
+    c.execute("SELECT * FROM Burgers") # Execute a SQL statement to get all the burgers
+    burger_data = c.fetchall() # Get the result of the SQL statement
 
-    conn.close()
-    return burger_data
+    conn.close() # Close the connection to the database
+    return burger_data # Return the result of the SQL statement
 
+# Function to the order interface
 def InventarInterface():
     global error
     
-    clear_terminal()
-    print("3. Inventar")
+    clear_terminal() # Clear the terminal
+    print("3. Inventar") # Display that the user is at the Inventar page
     print()
+    # Displays the options the user can choose
     print("1. Vis inventar")
     print("2. Oppdater ingrediens mengde")
-    print("3. Fjern ingrediens")
-    print("4. Tilbake")
+    print("3. Tilbake")
     choice = input("Velg en handling: ")
     
+    # Check what the user chose and call the corresponding function
     if choice == "1":
-        display_inventory()
+        display_inventory() # Call the display inventory function
     elif choice == "2":
-        updateIngredientCount()
+        updateIngredientCount() # Call the update ingredient count function
     elif choice == "3":
-        orderInterface()
+        orderInterface() 
     else:
         error = "Ugyldig valg. Prøv igjen."
         InventarInterface()
@@ -214,8 +235,12 @@ def updateIngredientCount():
     for ingredient in ingredients:
         count += 1
         print(f"{count}. Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}")
+    print()
     
     ingredientID = input("Skriv inn ingrediensID eller press enter for å avbryte: ")
+    
+    if ingredientID == "":
+        InventarInterface()
     
     try:
         ingredientID = int(ingredientID)
@@ -225,8 +250,6 @@ def updateIngredientCount():
         return
     
     match ingredientID:
-        case "":
-            InventarInterface()
         case 1:
             ingredient_name = "Burgerbrød topp og bunn"
         case 2:
@@ -253,15 +276,17 @@ def updateIngredientCount():
         updateIngredientCount()
         return
     
-    validate = input(f"Er du sikker på at du vil legge til {ingredient_name}? (y/n): ")
+    print()
+    validate = input(f'Er det "{ingredient_name}" du vil legge til mer av? (y/n): ')
     
     if validate.lower() == "n":
-        InventarInterface()
+        updateIngredientCount()
+        return
         
     print()
         
-    
-    IngredientCount = input("Hvor mange vil du legge til? Skriv inn antall eller trykk enter for å avbryte: ")
+    print('\nEksempel på å legge til 10: \n10 \n\nEksempel på å fjerne 10: \n-10 \n\n')
+    IngredientCount = input("Hvor mye vil du legge til eller fjerne? Skriv inn antall eller trykk enter for å avbryte: ")
     
     if IngredientCount == "":
         InventarInterface()
@@ -274,16 +299,18 @@ def updateIngredientCount():
     conn.commit()
     conn.close()
     
-    info = f'Oppdatert ingredient "{ingredient_name}" med {IngredientCount} stk. Totalt antall for {ingredient_name} er nå: {IngredientCountTotal}'
+    info = f'Oppdatert ingredient "{ingredient_name}" med {IngredientCount} stk. Totalt antall for "{ingredient_name}" er nå: {IngredientCountTotal}'
     InventarInterface()
 
 def orderInterface():
     global error
     
     clear_terminal()
-    print("1. Ordre")
-    print()
+
     if employed:
+        print("1. Ansatt handlinger")
+        print()
+        
         print("1. Vis ordre")
         print("2. Produser ordre")
         print('3. Inventar')
@@ -293,7 +320,6 @@ def orderInterface():
         if choice == "1":
             display_user_orders()
         elif choice == "2":
-            error = "Denne funksjonen er under implementert enda."
             produce_order()
             pass
         elif choice == "3":
@@ -304,10 +330,12 @@ def orderInterface():
             error = "Ugyldig valg. Prøv igjen."
             orderInterface()
     else:
-        print("1. Vis ordre")
+        print("1. Ordre")
+        print()
+        print("1. Vis dine ordre")
         print("2. Registrer ordre")
         print("3. Slett ordre")
-        print("3. Tilbake")
+        print("4. Tilbake")
         choice = input("Velg en handling: ")
         
         if choice == "1":
@@ -377,7 +405,6 @@ def produce_order():
     global info
     clear_terminal()
     print('2. Produser ordre')
-    print()
     
     displayNotProducedOrders()
     print()
@@ -422,13 +449,19 @@ def produce_order():
         quantity = c.fetchone()[0]
         if quantity <= 0:
             error = f'Ikke nok av ingrediensen "{ingredient_name}" på lager. Kan ikke produsere ordren.'
-            return
+            orderInterface()
     
+    auth = input(f"Er det denne ordren du vil produsere:\n  BestillingsID: {order[0]} \n  Opprettet av: {order[1]} \n  Produkt: {order[2]} \n(y/n): ")
+    
+    if auth.lower() == "n":
+        produce_order()
+        return
     
     # Print the ingredients
     print()
     print(f"Ingredienser for {order[2]}: \n{', '.join(ingredients_names)}")
     print()
+    
     
     input("Trykk enter for å produsere ordren... ")
     
@@ -442,7 +475,7 @@ def produce_order():
     conn.commit()
     conn.close()
     
-    info = f"Ordre {burger_produser} har blitt laget. ingredienser trekt fra ingredienser."
+    info = f"Ordre {burger_produser} har blitt laget. Ingredienser trekt fra ingredienser."
     orderInterface()
 
 def place_order():
@@ -496,7 +529,7 @@ def place_order():
     conn.commit()
     conn.close()
 
-    info = f"Order placed successfully for {burger_name} Burger!"
+    info = f'Ordre med "{burger_name}" ble velykket opprettet!'
     orderInterface()
 
 
@@ -558,7 +591,10 @@ def displayUserOrders():
 def display_user_orders():
     global error
     clear_terminal()
-    print("1. Vis ordre")
+    if not employed:
+        print("1. Vis dine ordre")
+    else:
+        print("1. Vis ordre")
     print()
     
     if employed:
