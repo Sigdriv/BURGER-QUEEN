@@ -6,6 +6,7 @@ current_user = None
 error = None
 info = None
 employed = False
+ordersForThisUser = False
 
 # Function to clear the terminal and display error/info and welcome message
 def clear_terminal():
@@ -127,6 +128,11 @@ def signUp():
     print("Skriv inn ønsket brukernavn og passord") # Ask the user to enter their desired username and password
     username = input("Brukernavn: ") # Ask the user to enter their desired username
     password = input("Passord: ") # Ask the user to enter their desired password
+    
+    if username == "" or password == "":
+        error = 'Brukernavn eller passord kan ikke stå tomt'
+        return
+    
     conn = connect_database() # Connect to the database
     c = conn.cursor() # Create a cursor to execute SQL statements
     c.execute("SELECT * FROM User WHERE UsernameID = ? AND Password = ?", (username, password)) # Execute a SQL statement to check if the username is already taken
@@ -362,6 +368,9 @@ def delete_order():
     
     print()
     
+    if ordersForThisUser == False:
+        orderInterface()
+    
     order_to_delete = input("Hvilken ordre vil du slette? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ")
     
     if order_to_delete == "":
@@ -566,6 +575,7 @@ def displayNotProducedOrders():
 
 def displayUserOrders():
     global error
+    global ordersForThisUser
     count = 0
     
     conn = connect_database()
@@ -576,15 +586,18 @@ def displayUserOrders():
     
     if not orders:
         error = f"Ingen ordre funnet for {current_user}"
-        clear_terminal()
-        print('1. Vis ordre')
-        print()
+        # clear_terminal()
+        # print('1. Vis ordre')
+        # print()
+        ordersForThisUser = False
+        return
     else:
         print("Dine Bestillinger:")
         print()
         for order in orders:
             count += 1
             print(f"{count}. BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
+        ordersForThisUser = True
     
     conn.close()
     
@@ -644,9 +657,12 @@ def display_user_orders():
     else:
         displayUserOrders()
         
-        print()
-        input("Press enter for å fortsette... ")
-        orderInterface()
+        if ordersForThisUser == True:
+            print()
+            input("Press enter for å fortsette... ")
+            orderInterface()
+        else:
+            orderInterface()
 
 def main():
     global current_user
