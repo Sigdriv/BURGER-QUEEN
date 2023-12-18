@@ -415,8 +415,12 @@ def produce_order():
     clear_terminal()
     print('2. Produser ordre')
     
-    displayNotProducedOrders()
+    anyBurger = displayNotProducedOrders()
     print()
+    
+    if anyBurger == False:
+        error = "Ingen ordre som kan produseres."
+        orderInterface()
     
     burger_produser = input("Hvilken burger vil du produsere? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ")
     
@@ -543,31 +547,61 @@ def place_order():
 
 
 
-def displayProducedOrders():
+def displayProducedOrders(All = True):
+    global error
+    global ordersForThisUser
     
     conn = connect_database()
     c = conn.cursor()
     
     c.execute("SELECT * FROM Orders WHERE Produced = 1")
     orders = c.fetchall()
+    
     print()
     print("Alle produserte ordre:")
     print()
+    
+    if All == False:
+        if orders == []:
+            error = "Ingen produserte ordre funnet."
+            ordersForThisUser = False
+            display_user_orders()
+    
+    else:
+        if orders == []:
+            print(f"{Fore.RED}Ingen produserte ordre funnet.{Fore.RESET}")
+    
     for order in orders:
         print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
         
     conn.close()
 
-def displayNotProducedOrders():
+def displayNotProducedOrders(All = True):
+    global ordersForThisUser
+    global error
         
     conn = connect_database()
     c = conn.cursor()
     
     c.execute("SELECT * FROM Orders WHERE Produced = 0")
     orders = c.fetchall()
+    
+        
     print()
     print("Alle ikke-produserte ordre:")
     print()
+    
+    if All == False:
+        if orders == []:
+            error = "Ingen ikke-produserte ordre funnet."
+            ordersForThisUser = False
+            display_user_orders()
+            
+    else:
+        if orders == []:
+            print(f"{Fore.RED}Ingen ikke-produserte ordre funnet.{Fore.RESET}")
+            return False
+            
     for order in orders:
         print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
 
@@ -621,9 +655,9 @@ def display_user_orders():
         if choice == "1":
             clear_terminal()
             print("1. Alle ordre")
-            displayProducedOrders()
+            displayProducedOrders(True)
             
-            displayNotProducedOrders()
+            displayNotProducedOrders(True)
             print()
             
             input("Press enter for å fortsette... ")
@@ -632,7 +666,7 @@ def display_user_orders():
         elif choice == "2":
             clear_terminal()
             print("2. Produserte ordre")
-            displayProducedOrders()
+            displayProducedOrders(True)
             print()
             
             input("Press enter for å fortsette... ")
@@ -641,7 +675,7 @@ def display_user_orders():
         elif choice == "3":
             clear_terminal()
             print("3. Ikke-produserte ordre")
-            displayNotProducedOrders()
+            displayNotProducedOrders(True)
             print()
             
             input("Press enter for å fortsette... ")
