@@ -187,268 +187,266 @@ def InventarInterface():
     elif choice == "2":
         updateIngredientCount() # Call the update ingredient count function
     elif choice == "3":
-        orderInterface() 
+        orderInterface() # Call the order interface function
     else:
-        error = "Ugyldig valg. Prøv igjen."
-        InventarInterface()
+        error = "Ugyldig valg. Prøv igjen."  # Sets an error message if the user chose an invalid option
+        InventarInterface() # Call the Inventar interface function again
 
-def display_inventory():
-    global error
-    global info
+def display_inventory(): # Function to display the inventory
+    global error # Get the error variable
+    global info # Get the info variable
     
-    clear_terminal()
-    print("1. Vis inventar")
+    clear_terminal() # Clear the terminal
+    print("1. Vis inventar") # Display that the user is at the display inventory page
+    print() 
+    
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
+    
+    c.execute("SELECT * FROM Ingredients") # Execute a SQL statement to get all the ingredients
+    ingredients = c.fetchall() # Get the result of the SQL statement
+    
+    print("Ingredienser:") 
     print()
+    for ingredient in ingredients: # Loop through all the ingredients
+        print(f"Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}") # Display the ingredient name and quantity
     
-    conn = connect_database()
-    c = conn.cursor()
-    
-    c.execute("SELECT * FROM Ingredients")
-    ingredients = c.fetchall()
-    
-    print("Ingredienser:")
-    print()
-    for ingredient in ingredients:
-        print(f"Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}")
-    
-    conn.close()
+    conn.close() # Close the connection to the database
     
     print()
     input("Press enter for å fortsette... ")
-    InventarInterface()
+    InventarInterface() # Call the Inventar interface function
 
-def updateIngredientCount():
-    global error
-    global info
+def updateIngredientCount(): # Function to update the ingredient count
+    global error # Get the error variable
+    global info # Get the info variable
     
-    clear_terminal()
-    print("2. Oppdater ingrediens mengde")
+    clear_terminal()  # Clear the terminal
+    print("2. Oppdater ingrediens mengde") # Display that the user is at the update ingredient count page
     print()
     
-    conn = connect_database()
-    c = conn.cursor()
-    c.execute("SELECT * FROM Ingredients")
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
+    c.execute("SELECT * FROM Ingredients") # Execute a SQL statement to get all the ingredients
     
-    ingredients = c.fetchall()
+    ingredients = c.fetchall() # Get the result of the SQL statement
     
-    count = 0
-    for ingredient in ingredients:
-        count += 1
-        print(f"IngredientID: {count}. Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}")
+    count = 0 # Set the count variable to 0
+    for ingredient in ingredients: # Loop through all the ingredients
+        count += 1 # Add 1 to the count variable
+        print(f"IngredientID: {count}. Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}") # Display the ingredientID, name and quantity
     print()
     
-    ingredientID = input("Skriv inn ingrediensID eller press enter for å avbryte: ")
+    ingredientID = input("Skriv inn ingrediensID eller press enter for å avbryte: ") # Ask the user to enter the ingredientID
     
-    if ingredientID == "":
-        InventarInterface()
+    if ingredientID == "": # If the user chose to go back
+        InventarInterface() # Call the Inventar interface function
     
-    try:
+    try: # Try to convert the ingredientID to an integer
         ingredientID = int(ingredientID)
-    except ValueError:
-        error = "Ugyldig input. IngredientID må være et tall. Prøv igjen."
-        updateIngredientCount()
-        return
+    except ValueError: # If the ingredientID is not an integer
+        error = "Ugyldig input. IngredientID må være et tall. Prøv igjen." # Sets the error message to that the ingredientID must be an integer
+        updateIngredientCount() # Call the update ingredient count function again
+        return 
     
-    match ingredientID:
-        case 1:
+    match ingredientID: # Check what the ingredientID is
+        case 1: # If the ingredientID is 1
             ingredient_name = "Burgerbrød topp og bunn"
-        case 2:
+        case 2: # If the ingredientID is 2
             ingredient_name = "Burgerkjøtt"
-        case 3:
+        case 3: # If the ingredientID is 3
             ingredient_name = "Salat"
-        case 4:
+        case 4: # If the ingredientID is 4
             ingredient_name = "Tomat"
-        case 5:
+        case 5: # If the ingredientID is 5
             ingredient_name = "Ost"
-        case 6:
+        case 6: # If the ingredientID is 6
             ingredient_name = "Agurk"
-        case 7:
+        case 7: # If the ingredientID is 7
             ingredient_name = "Potet"
-        case _:
-            error = "Ugyldig valg. Prøv igjen."
-            updateIngredientCount()
+        case _: # If the ingredientID is not 1-7
+            error = "Ugyldig valg. Prøv igjen." # Sets the error message to that the choice is invalid
+            updateIngredientCount() # Call the update ingredient count function again
     
-    c.execute("SELECT * FROM Ingredients WHERE IngrediensID = ?", (ingredient_name,))
-    ingredient = c.fetchone()
+    c.execute("SELECT * FROM Ingredients WHERE IngrediensID = ?", (ingredient_name,)) # Execute a SQL statement to get the ingredient
+    ingredient = c.fetchone() # Get the result of the SQL statement
 
-    if ingredient is None:
-        error = "Ugyldig ingrediensNavn. Prøv igjen. Må rettes opp i koden"
-        updateIngredientCount()
+    if ingredient is None: # If the ingredient is None
+        error = "Ugyldig ingrediensNavn. Dette må rettes opp i koden, ikke din feil som bruker" # Sets the error message to that the ingredient name is invalid
+        updateIngredientCount() # Call the update ingredient count function again
         return
     
     print()
-    validate = input(f'Er det "{ingredient_name}" du vil legge til mer av? (y/n): ')
+    validate = input(f'Er det "{ingredient_name}" du vil legge til mer av? (y/n): ') # Ask the user to validate their choice
     
-    if validate.lower() == "n":
-        updateIngredientCount()
+    if validate.lower() == "n": # If the user chose to go back
+        updateIngredientCount() # Call the update ingredient count function again
         return
         
     print()
         
-    print('\nEksempel på å legge til 10: \n10 \n\nEksempel på å fjerne 10: \n-10 \n\n')
-    IngredientCount = input("Hvor mye vil du legge til eller fjerne? Skriv inn antall eller trykk enter for å avbryte: ")
+    print('\nEksempel på å legge til 10: \n10 \n\nEksempel på å fjerne 10: \n-10 \n\n') # Display an example of how to add or remove ingredients
+    IngredientCount = input("Hvor mye vil du legge til eller fjerne? Skriv inn antall eller trykk enter for å avbryte: ") # Ask the user to enter the amount of ingredients they want to add or remove
     
-    if IngredientCount == "":
-        InventarInterface()
+    if IngredientCount == "": # If the user chose to go back
+        InventarInterface() # Call the Inventar interface function
     
-    c.execute("UPDATE Ingredients SET Much = Much + ? WHERE IngrediensID = ?", (IngredientCount, ingredient_name,))
+    c.execute("UPDATE Ingredients SET Much = Much + ? WHERE IngrediensID = ?", (IngredientCount, ingredient_name,)) # Execute a SQL statement to update the ingredient quantity
         
-    c.execute("SELECT Much FROM Ingredients WHERE IngrediensID = ?", (ingredient_name,))
-    IngredientCountTotal = c.fetchone()[0]
+    c.execute("SELECT Much FROM Ingredients WHERE IngrediensID = ?", (ingredient_name,)) # Execute a SQL statement to get the ingredient quantity
+    IngredientCountTotal = c.fetchone()[0] # Get the result of the SQL statement
     
-    conn.commit()
-    conn.close()
+    conn.commit() # Commit the changes to the database
+    conn.close() # Close the connection to the database
     
-    info = f'Oppdatert ingredient "{ingredient_name}" med {IngredientCount} stk. Totalt antall for "{ingredient_name}" er nå: {IngredientCountTotal}'
-    InventarInterface()
+    info = f'Oppdatert ingredient "{ingredient_name}" med {IngredientCount} stk. Totalt antall for "{ingredient_name}" er nå: {IngredientCountTotal}' # Set the info variable to that the ingredient quantity was successfully updated and display it when the terminal gets cleared
+    InventarInterface() # Call the Inventar interface function
 
-def orderInterface():
-    global error
+def orderInterface(): # Function to the order interface
+    global error # Get the error variable
     
-    clear_terminal()
+    clear_terminal() # Clear the terminal
 
-    if employed:
-        print("1. Ansatt handlinger")
+    if employed: # If the user is an employee
+        print("1. Ansatt handlinger") # Display that the user is at the employee actions page
         print()
         
         print("1. Vis ordre")
         print("2. Produser ordre")
         print('3. Inventar')
         print("4. Tilbake")
-        choice = input("Velg en handling: ")
+        choice = input("Velg en handling: ") # Ask the user to choose what they want to do
         
-        if choice == "1":
+        if choice == "1": # If the user chose to display orders
             display_user_orders()
-        elif choice == "2":
+        elif choice == "2": # If the user chose to produce orders
             produce_order()
-            pass
-        elif choice == "3":
+        elif choice == "3": # If the user chose to go to the inventory page
             InventarInterface()
-        elif choice == "4":
-            main()
-        else:
-            error = "Ugyldig valg. Prøv igjen."
-            orderInterface()
-    else:
+        elif choice == "4": # If the user chose to go back
+            main() 
+        else: # If the user chose an invalid option
+            error = "Ugyldig valg. Prøv igjen." # Sets the error message to that the choice is invalid
+            orderInterface() # Call the order interface function again
+    else: # If the user is not an employee
         print("1. Ordre")
         print()
         print("1. Vis dine ordre")
         print("2. Registrer ordre")
         print("3. Slett ordre")
         print("4. Tilbake")
-        choice = input("Velg en handling: ")
+        choice = input("Velg en handling: ") # Ask the user to choose what they want to do
         
-        if choice == "1":
+        if choice == "1": # If the user chose to display orders
             display_user_orders()
-        elif choice == "2":
+        elif choice == "2": # If the user chose to place an order
             place_order()
-        elif choice == "3":
+        elif choice == "3": # If the user chose to delete an order
             delete_order()
-        elif choice == "4":
+        elif choice == "4": # If the user chose to go back
             main()
-        else:
-            error = "Ugyldig valg. Prøv igjen."
-            orderInterface()
+        else: # If the user chose an invalid option
+            error = "Ugyldig valg. Prøv igjen." # Sets the error message to that the choice is invalid
+            orderInterface() # Call the order interface function again
 
 
-def delete_order():
-    global error
-    global info
-    clear_terminal()
-    print("3. Slett ordre")
+def delete_order(): # Function to delete an order
+    global error # Get the error variable
+    global info # Get the info variable
+    clear_terminal() # Clear the terminal
+    print("3. Slett ordre") 
     print()
     
-    displayUserOrders()
+    displayUserOrders() # Call the display user orders function
     
     print()
     
-    if ordersForThisUser == False:
-        orderInterface()
+    if ordersForThisUser == False: # If there are no orders for the user
+        orderInterface() # Call the order interface function
     
-    order_to_delete = input("Hvilken ordre vil du slette? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ")
+    order_to_delete = input("Hvilken ordre vil du slette? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ") # Ask the user to enter the order they want to delete
     
-    if order_to_delete == "":
-        orderInterface()
+    if order_to_delete == "": # If the user chose to go back
+        orderInterface() # Call the order interface function
     
-    try:
+    try: # Try to convert the order to delete to an integer
         order_to_delete = int(order_to_delete)
-    except ValueError:
+    except ValueError: # If the order to delete is not an integer
         error = "Ugyldig input. BestillingsID må være et tall. Prøv igjen."
         delete_order()
         return
     
-    conn = connect_database()
-    c = conn.cursor()
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
     
     # Retrieve order details
-    c.execute("SELECT * FROM Orders WHERE OrderID = ?", (order_to_delete,))
-    order = c.fetchone()
+    c.execute("SELECT * FROM Orders WHERE OrderID = ?", (order_to_delete,)) # Execute a SQL statement to get the order
+    order = c.fetchone() # Get the result of the SQL statement
     
-    if order is None:
-        error = "Ugyldig bestillingsID. Prøv igjen."
-        delete_order()
+    if order is None: # If the order is None
+        error = "Ugyldig bestillingsID. Prøv igjen." # Sets the error message to that the order is invalid
+        delete_order() # Call the delete order function again
         return
     
-    if order[1] != current_user:
-        error = "Du kan bare slette dine egne ordre."
-        delete_order()
+    if order[1] != current_user: # If the order is not created by the current user
+        error = "Du kan bare slette dine egne ordre." # Sets the error message to that the user can only delete their own orders
+        delete_order() # Call the delete order function again
         return
     
     # Delete the order
-    c.execute("DELETE FROM Orders WHERE OrderID = ?", (order_to_delete,))
-    conn.commit()
-    conn.close()
+    c.execute("DELETE FROM Orders WHERE OrderID = ?", (order_to_delete,)) # Execute a SQL statement to delete the order
+    conn.commit() # Commit the changes to the database
+    conn.close() # Close the connection to the database
     
-    info = f"Ordre {order_to_delete} har blitt slettet."
-    orderInterface()
+    info = f"Ordre {order_to_delete} har blitt slettet." # Set the info variable to that the order was successfully deleted and display it when the terminal gets cleared
+    orderInterface() # Call the order interface function
             
 
-def produce_order():
-    global error
-    global info
-    clear_terminal()
-    print('2. Produser ordre')
+def produce_order(): # Function to produce an order
+    global error # Get the error variable
+    global info # Get the info variable
+    clear_terminal() 
+    print('2. Produser ordre') 
     
-    anyBurger = displayNotProducedOrders()
-    print()
+    anyBurger = displayNotProducedOrders() # Call the display not produced orders function
+    print() 
     
-    if anyBurger == False:
-        error = "Ingen ordre som kan produseres."
-        orderInterface()
+    if anyBurger == False: # If there are no orders that can be produced
+        error = "Ingen ordre som kan produseres." # Sets the error message to that there are no orders that can be produced
+        orderInterface() # Call the order interface function
     
-    burger_produser = input("Hvilken burger vil du produsere? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ")
+    burger_produser = input("Hvilken burger vil du produsere? Skriv inn bestillingsID-en eller trykk enter for å avbryte: ") # Ask the user to enter the order they want to produce
     
-    if burger_produser == "":
-        orderInterface()
+    if burger_produser == "": # If the user chose to go back
+        orderInterface() # Call the order interface function
     
-    try:
+    try: # Try to convert the order to produce to an integer
         burger_produser = int(burger_produser)
-    except ValueError:
-        error = "Ugyldig input. BestillingsID må være et tall. Prøv igjen."
+    except ValueError: # If the order to produce is not an integer
+        error = "Ugyldig input. BestillingsID må være et tall. Prøv igjen." # Sets the error message to that the order to produce must be an integer
         produce_order()
         return
     
-    conn = connect_database()
-    c = conn.cursor()
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
     
     # Retrieve order details
-    c.execute("SELECT * FROM Orders WHERE OrderID = ?", (burger_produser,))
-    order = c.fetchone()
+    c.execute("SELECT * FROM Orders WHERE OrderID = ?", (burger_produser,)) # Execute a SQL statement to get the order
+    order = c.fetchone() # Get the result of the SQL statement
     
-    if order is None:
-        error = "Ugyldig bestillingsID. Prøv igjen."
-        produce_order()
+    if order is None: # If the order is None
+        error = "Ugyldig bestillingsID. Prøv igjen." # Sets the error message to that the order is invalid
+        produce_order() # Call the produce order function again
         return
     
-    if order[3] == 1:
-        error = "Denne ordren er allerede produsert."
-        produce_order()
-        return
+    if order[3] == 1: # If the order has already been produced
+        error = "Denne ordren er allerede produsert." # Sets the error message to that the order has already been produced
+        produce_order() # Call the produce order function again
+        return 
     
-    # Retrieve ingredients for the burger from BurgerIngredients table
-    burger_id = order[2]
-    c.execute("SELECT IngredientsID FROM BurgerIngredients WHERE BurgerID = ?", (burger_id,))
-    ingredients_names = [row[0] for row in c.fetchall()]
+    burger_id = order[2] # Get the burgerID of the order
+    c.execute("SELECT IngredientsID FROM BurgerIngredients WHERE BurgerID = ?", (burger_id,)) # Execute a SQL statement to get the ingredients of the burger
+    ingredients_names = [row[0] for row in c.fetchall()] # Get the result of the SQL statement
     
     # Check if there are enough ingredients in stock
     for ingredient_name in ingredients_names:
@@ -458,9 +456,9 @@ def produce_order():
             error = f'Ikke nok av ingrediensen "{ingredient_name}" på lager. Kan ikke produsere ordren.'
             orderInterface()
     
-    auth = input(f"Er det denne ordren du vil produsere:\n  BestillingsID: {order[0]} \n  Opprettet av: {order[1]} \n  Produkt: {order[2]} \n(y/n): ")
+    auth = input(f"Er det denne ordren du vil produsere:\n  BestillingsID: {order[0]} \n  Opprettet av: {order[1]} \n  Produkt: {order[2]} \n(y/n): ") # Ask the user to validate their choice
     
-    if auth.lower() == "n":
+    if auth.lower() == "n": # If the user chose to go back
         produce_order()
         return
     
@@ -482,80 +480,78 @@ def produce_order():
     conn.commit()
     conn.close()
     
-    info = f"Ordre {burger_produser} har blitt laget. Ingredienser trekt fra ingredienser."
+    info = f"Ordre {burger_produser} har blitt laget. Ingredienser trekt fra inventaret." # Set the info variable to that the order was successfully produced and display it when the terminal gets cleared
     orderInterface()
 
-def place_order():
-    global current_user
-    global error
-    global info
+def place_order(): # Function to place an order
+    global current_user # Get the current user
+    global error # Get the error variable
+    global info # Get the info variable
     clear_terminal()
     print("1. Registrer ordre")
     print()
     
-    burger_names_ID = get_burger()
+    burger_names_ID = get_burger() # Call the get burger function
     
     print("Available Burgers:")
-    for burger_name, burger_ID in burger_names_ID:
-        print(f"{burger_ID}. {burger_name}")
+    for burger_name, burger_ID in burger_names_ID: # Loop through all the burgers
+        print(f"{burger_ID}. {burger_name}") # Display the burger name and ID
     print()
         
-    burger_ID_input = input("Skriv inn burgerID-en: eller enter for å avbryte: ")
+    burger_ID_input = input("Skriv inn burgerID-en: eller enter for å avbryte: ") # Ask the user to enter the burgerID
     
-    if burger_ID_input == "":
-        orderInterface()
+    if burger_ID_input == "": # If the user chose to go back
+        orderInterface() # Call the order interface function
         return
     
-    try:
+    try: # Try to convert the burgerID to an integer
         burger_ID = int(burger_ID_input)
-    except ValueError:
-        error = "Ugyldig input. BurgerID må være et tall. Prøv igjen."
-        place_order()
+    except ValueError: # If the burgerID is not an integer
+        error = "Ugyldig input. BurgerID må være et tall. Prøv igjen." # Sets the error message to that the burgerID must be an integer
+        place_order() # Call the place order function again
         return
     
     # Check if the entered burger_ID is valid
-    valid_burger_ids = [burger_ID for _, burger_ID in burger_names_ID]
-    print(valid_burger_ids)
-    if burger_ID not in valid_burger_ids:
-        error = "Ugyldig BurgerID. Prøv igjen."
-        place_order()
+    valid_burger_ids = [burger_ID for _, burger_ID in burger_names_ID] # Get all the valid burgerIDs
+    print(valid_burger_ids) 
+    if burger_ID not in valid_burger_ids: # If the entered burgerID is not valid
+        error = "Ugyldig BurgerID. Prøv igjen." # Sets the error message to that the burgerID is invalid
+        place_order() # Call the place order function again
         return
 
-    # Get the corresponding burger_name
-    burger_name = next(name for name, id in burger_names_ID if id == burger_ID)
+    burger_name = next(name for name, id in burger_names_ID if id == burger_ID) # Get the burger name of the entered burgerID
     
-    print("Ordre lastes opp...")
+    print("Ordre lastes opp...") 
     print("Vent litt")
 
-    conn = connect_database()
-    c = conn.cursor()
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
 
-    c.execute("INSERT INTO Orders (Who, What, Produced) VALUES (?, ?, 0)",
-              (current_user, burger_name))
+    c.execute("INSERT INTO Orders (Who, What, Produced) VALUES (?, ?, 0)", (current_user, burger_name)) # Execute a SQL statement to insert the order into the database
     
-    conn.commit()
-    conn.close()
+    conn.commit() # Commit the changes to the database
+    conn.close() # Close the connection to the database
 
-    info = f'Ordre med "{burger_name}" ble velykket opprettet!'
-    orderInterface()
+    info = f'Ordre med "{burger_name}" ble velykket opprettet!' # Set the info variable to that the order was successfully placed and display it when the terminal gets cleared
+    orderInterface() # Call the order interface function
 
 
 
-def displayProducedOrders(All = True):
-    global error
-    global ordersForThisUser
+def displayProducedOrders(All = True): # Function to display the produced orders
+    global error # Get the error variable
+    global ordersForThisUser # Get the ordersForThisUser variable
     
-    conn = connect_database()
-    c = conn.cursor()
+    conn = connect_database() # Connect to the database
+    c = conn.cursor() # Create a cursor to execute SQL statements
     
-    c.execute("SELECT * FROM Orders WHERE Produced = 1")
-    orders = c.fetchall()
+    c.execute("SELECT * FROM Orders WHERE Produced = 1") # Execute a SQL statement to get all the produced orders
+    orders = c.fetchall() # Get the result of the SQL statement
     
     print()
     print("Alle produserte ordre:")
     print()
     
-    if All == False:
+    if All == False: # If the user chose to display all the orders
         if orders == []:
             error = "Ingen produserte ordre funnet."
             ordersForThisUser = False
