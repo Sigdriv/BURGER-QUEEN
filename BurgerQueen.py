@@ -14,13 +14,12 @@ def clear_terminal():
     global error
     global info
     
-    # Clear the terminal if their is a user logged in
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
+        
     if current_user is not None:
-        if os.name == "nt":
-            os.system("cls")
-        else:
-            os.system("clear")
-            
         # Display current user and if they are an employee
         if employed:
             print("Logget inn som " + current_user + " (Ansatt)")
@@ -29,11 +28,6 @@ def clear_terminal():
             
     # Clear the terminal if their is no user logged in
     else:
-        if os.name == "nt":
-            os.system("cls")
-        else:
-            os.system("clear")
-        
         print(f"{Fore.YELLOW}Du er ikke logget inn, \nVennligst logg inn eller opprett bruker{Fore.RESET}") # Display that the user is not logged in and need to log in or sign up
         
     print("Velkommen til Burger Queen") # Display welcome message
@@ -240,7 +234,7 @@ def updateIngredientCount():
     count = 0
     for ingredient in ingredients:
         count += 1
-        print(f"{count}. Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}")
+        print(f"IngredientID: {count}. Ingrediensnavn: {ingredient[0]}, Mengde: {ingredient[1]}")
     print()
     
     ingredientID = input("Skriv inn ingrediensID eller press enter for å avbryte: ")
@@ -620,9 +614,6 @@ def displayUserOrders():
     
     if not orders:
         error = f"Ingen ordre funnet for {current_user}"
-        # clear_terminal()
-        # print('1. Vis ordre')
-        # print()
         ordersForThisUser = False
         return
     else:
