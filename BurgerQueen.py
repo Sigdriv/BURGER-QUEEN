@@ -551,87 +551,87 @@ def displayProducedOrders(All = True): # Function to display the produced orders
     print("Alle produserte ordre:")
     print()
     
-    if All == False: # If the user chose to display all the orders
+    if All == False: # If the user chose not to display all the orders
         if orders == []:
             error = "Ingen produserte ordre funnet."
             ordersForThisUser = False
             display_user_orders()
     
-    else:
+    else: # If the user chose to display all the orders
         if orders == []:
             print(f"{Fore.RED}Ingen produserte ordre funnet.{Fore.RESET}")
     
-    for order in orders:
-        print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
+    for order in orders: # Loop through all the orders
+        print(f"BestillingsID: {order[0]}, Produkt: {order[2]}") # Display the orderID and product
         
     conn.close()
 
-def displayNotProducedOrders(All = True):
+def displayNotProducedOrders(All = True): # Function to display the not produced orders
     global ordersForThisUser
     global error
         
     conn = connect_database()
     c = conn.cursor()
     
-    c.execute("SELECT * FROM Orders WHERE Produced = 0")
-    orders = c.fetchall()
+    c.execute("SELECT * FROM Orders WHERE Produced = 0") # Execute a SQL statement to get all the not produced orders
+    orders = c.fetchall() # Get the result of the SQL statement
     
         
     print()
     print("Alle ikke-produserte ordre:")
     print()
     
-    if All == False:
+    if All == False: # If the user chose not to display all the orders
         if orders == []:
             error = "Ingen ikke-produserte ordre funnet."
             ordersForThisUser = False
             display_user_orders()
             
-    else:
+    else: # If the user chose to display all the orders
         if orders == []:
             print(f"{Fore.RED}Ingen ikke-produserte ordre funnet.{Fore.RESET}")
             return False
             
-    for order in orders:
+    for order in orders: # Loop through all the orders
         print(f"BestillingsID: {order[0]}, Produkt: {order[2]}")
 
     conn.close()
 
-def displayUserOrders():
+def displayUserOrders(): # Function to display the user orders
     global error
     global ordersForThisUser
-    count = 0
+    count = 0 # Set the count variable to 0
     
     conn = connect_database()
     c = conn.cursor()
     
-    c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user,))
-    orders = c.fetchall()
+    c.execute("SELECT * FROM Orders WHERE Who = ?", (current_user,)) # Execute a SQL statement to get all the orders for the current user
+    orders = c.fetchall() # Get the result of the SQL statement
     
-    if not orders:
-        error = f"Ingen ordre funnet for {current_user}"
-        ordersForThisUser = False
-        return
-    else:
-        print("Dine Bestillinger:")
+    if not orders: # If there are no orders for the current user
+        error = f"Ingen ordre funnet for {current_user}" # Sets the error message to that there are no orders for the current user
+        ordersForThisUser = False # Set ordersForThisUser to False
+        return # Return to the order interface function
+    else: # If there are orders for the current user
+        print("Dine Bestillinger:") 
         print()
-        for order in orders:
-            count += 1
-            print(f"{count}. BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}")
-        ordersForThisUser = True
+        for order in orders: # Loop through all the orders
+            count += 1 # Add 1 to the count variable
+            print(f"{count}. BestillingsID: {order[0]}, Burger: {order[2]}, Produsert: {'Ja' if order[3] else 'Nei'}") # Display the orderID, burger and if the order has been produced
+        ordersForThisUser = True # Set ordersForThisUser to True
     
     conn.close()
     
-def display_user_orders():
+def display_user_orders(): # Function to display the user orders
     global error
-    clear_terminal()
-    if not employed:
-        print("1. Vis dine ordre")
-    else:
-        print("1. Vis ordre")
+    clear_terminal() # Clear the terminal
+    if not employed: # If the user is not an employee
+        print("1. Vis dine ordre") # Display that the user is at the display user orders page
+    else: # If the user is an employee
+        print("1. Vis ordre") # Display that the user is at the display orders page
     print()
     
-    if employed:
+    if employed: # If the user is an employee
         
         print("1. Alle ordre")
         print("2. Produserte ordre")
@@ -642,16 +642,16 @@ def display_user_orders():
         if choice == "1":
             clear_terminal()
             print("1. Alle ordre")
-            displayProducedOrders(True)
+            displayProducedOrders(True) # Call the display produced orders function and tells the function to display all the orders
             
-            displayNotProducedOrders(True)
+            displayNotProducedOrders(True) # Call the display not produced orders function and tells the function to display all the orders
             print()
             
-            input("Press enter for å fortsette... ")
-            display_user_orders()
+            input("Press enter for å fortsette... ") # Ask the user to press enter to continue
+            display_user_orders() # Call the display user orders function again
         
-        elif choice == "2":
-            clear_terminal()
+        elif choice == "2": # If the user chose to display the produced orders
+            clear_terminal() 
             print("2. Produserte ordre")
             displayProducedOrders(True)
             print()
@@ -659,7 +659,7 @@ def display_user_orders():
             input("Press enter for å fortsette... ")
             display_user_orders()
         
-        elif choice == "3":
+        elif choice == "3": # If the user chose to display the not produced orders
             clear_terminal()
             print("3. Ikke-produserte ordre")
             displayNotProducedOrders(True)
@@ -668,73 +668,72 @@ def display_user_orders():
             input("Press enter for å fortsette... ")
             display_user_orders()
         
-        elif choice == "4":
-            orderInterface()
+        elif choice == "4": # If the user chose to go back
+            orderInterface() # Call the order interface function
         
         else:
-            error = "Ugyldig valg. Prøv igjen."
-            display_user_orders()
+            error = "Ugyldig valg. Prøv igjen." # Sets the error message to that the choice is invalid
+            display_user_orders() 
     
-    else:
-        displayUserOrders()
+    else: # If the user is not an employee
+        displayUserOrders() # Call the display user orders function
         
-        if ordersForThisUser == True:
+        if ordersForThisUser == True: # If there are orders for the current user
             print()
-            input("Press enter for å fortsette... ")
-            orderInterface()
+            input("Press enter for å fortsette... ") # Ask the user to press enter to continue
+            orderInterface() # Call the order interface function
         else:
-            orderInterface()
+            orderInterface() # Call the order interface function
 
 def main():
-    global current_user
-    global error
+    global current_user # Get the current user
+    global error # Get the error variable
     
 
-    while True:
-        clear_terminal()
+    while True: # Loop forever
+        clear_terminal() # Clear the terminal
         print()
-        if current_user is None:
+        if current_user is None: # If there is no user logged in
             print("1. Logg inn/opprett bruker")
             print("2. Avslutt")
 
-            choice = input("Velg en handling: ")
+            choice = input("Velg en handling: ") # Ask the user to choose what they want to do
 
-            if choice == "1":
-                
+            if choice == "1": # If the user chose to log in or sign up
                 logInnInterface()
 
-            elif choice == "2":
+            elif choice == "2": # If the user chose to exit the program
                 print("Avslutter programmet.")
-                exit()
+                exit() # Exit the program
 
-            else:
-                error = "Ugyldig valg. Prøv igjen."
-                main()
+            else: # If the user chose an invalid option
+                error = "Ugyldig valg. Prøv igjen." # Sets the error message to that the choice is invalid
+                main() # Call the main function again
         
-        else:
-            if employed:
+        else: # If there is a user logged in
+            if employed: # If the user is an employee
                 print("1. Ansatt handlinger")
                 print("2. Logg ut")
                 print("3. Avslutt")
 
-                choice = input("Velg en handling: ")
+                choice = input("Velg en handling: ") # Ask the user to choose what they want to do
 
-                if choice == "2":
-                    current_user = None
-                    clear_terminal()
+                if choice == "2": # If the user chose to log out
+                    current_user = None # Set the current user to None
+                    clear_terminal() # Clear the terminal
 
-                elif choice == "1":
-                    orderInterface()
+                elif choice == "1": # If the user chose to go to the employee actions page
+                    orderInterface() # Call the order interface function
 
-                elif choice == "3":
-                    print("Avslutter programmet")
-                    exit()
+                elif choice == "3": # If the user chose to exit the program
+                    print("Avslutter programmet") 
+                    exit() # Exit the program
 
-                else:
+                else: # If the user chose an invalid option
                     error = "Ugyldig valg. Prøv igjen."
-                    main()
+                    main() # Call the main function again
             
-            else:
+            else: # If the user is not an employee
                 print("1. Ordre")
                 print("2. Logg ut")
                 print("3. Avslutt")
@@ -756,5 +755,5 @@ def main():
                     error = "Ugyldig valg. Prøv igjen."
                     main()
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": # If the program is run directly
+    main() # Call the main function
