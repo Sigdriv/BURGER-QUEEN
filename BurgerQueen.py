@@ -1,3 +1,6 @@
+from subprocess import call
+call("pip install colorama", shell=True)
+
 import sqlite3 as sql
 import os
 from colorama import Fore
