@@ -396,6 +396,10 @@ def delete_order(): # Function to delete an order
         delete_order() # Call the delete order function again
         return
     
+    if order[3] == 1: # If the order has already been produced
+        error = "Du kan ikke slette allerede produserte ordre." # Sets the error message to that the user can not delete orders that have already been produced
+        delete_order() # Call the delete order function again
+    
     # Delete the order
     c.execute("DELETE FROM Orders WHERE OrderID = ?", (order_to_delete,)) # Execute a SQL statement to delete the order
     conn.commit() # Commit the changes to the database
