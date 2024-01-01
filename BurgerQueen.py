@@ -710,7 +710,9 @@ def main():
                 logInnInterface()
 
             elif choice == "2": # If the user chose to exit the program
-                print("Avslutter programmet.")
+                print()
+                print("Programmet avsluttes")
+                print()
                 exit() # Exit the program
 
             else: # If the user chose an invalid option
@@ -733,7 +735,9 @@ def main():
                     orderInterface() # Call the order interface function
 
                 elif choice == "3": # If the user chose to exit the program
-                    print("Avslutter programmet") 
+                    print()
+                    print("Programmet avsluttes")
+                    print()
                     exit() # Exit the program
 
                 else: # If the user chose an invalid option
@@ -755,7 +759,9 @@ def main():
                     orderInterface()
 
                 elif choice == "3":
-                    print("Avslutter programmet")
+                    print()
+                    print("Programmet avsluttes")
+                    print()
                     exit()
 
                 else:
