@@ -495,7 +495,7 @@ def place_order(): # Function to place an order
     global error # Get the error variable
     global info # Get the info variable
     clear_terminal()
-    print("1. Registrer ordre")
+    print("2. Registrer ordre")
     print()
     
     burger_names_ID = get_burger() # Call the get burger function
