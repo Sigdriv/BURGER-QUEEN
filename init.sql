@@ -13,9 +13,9 @@ VALUES
 
 INSERT INTO Burgers
 VALUES
-('Whopper Queen'),
-('Triple Cheesy Princess'),
-('Kingdom Fries');
+('Whopper Queen', 1),
+('Triple Cheesy Princess', 2),
+('Kingdom Fries', 3);
 
 INSERT INTO Ingredients
 VALUES
